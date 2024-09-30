@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration</title>
+</head>
+<body>
+    <h1>Register User</h1>
+    <form id="userForm">
+        <input type="text" id="name" name="name" placeholder="Enter Name" required /><br></br>
+        <input type="email" id="email" name="email" placeholder="Enter Email" required /><br></br>
+        <input type="password" id="password" name="password" placeholder="Enter Password" required /><br></br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <h1>Users List</h1>
+    <div id="users"></div>
+
+    <script>
+        // Submit user form
+        document.getElementById('userForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('/api/insert-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password })
+            });
+
+            if (response.ok) {
+                alert('User registered successfully');
+                fetchUsers();
+            } else {
+                alert('Failed to register user');
+            }
+        });
+
+        // Fetch and display users
+        async function fetchUsers() {
+            const response = await fetch('/api/get-users');
+            const users = await response.json();
+            const usersDiv = document.getElementById('users');
+            usersDiv.innerHTML = '';
+            users.forEach(user => {
+                usersDiv.innerHTML += `
+                    <p>${user.name} (${user.email}) 
+                    <button onclick="deleteUser(${user.id})">Delete</button></p>
+                `;
+            });
+        }
+
+        // Delete user
+        async function deleteUser(id) {
+            const response = await fetch(`/api/delete-user/${id}`, { method: 'DELETE' });
+            if (response.ok) {
+                fetchUsers();
+            } else {
+                alert('Failed to delete user');
+            }
+        }
+
+        // Initial fetch of users
+        fetchUsers();
+    </script>
+</body>
+</html>
